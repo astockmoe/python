@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Aug 28 14:20:22 2020
+
+@author: Andrew
+"""
+
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn import metrics
+
+
+housing = pd.read_csv("housing.csv")
+
+#general overview
+print(housing.info())
+print(housing.describe())
+print(housing.columns)
+
+#checking for null values
+print(housing.isna().sum())
+#total_bedrooms has 207 null values which can be interpreted to be an entire block of studio apartments/one room houses, so it is appropriate to leave these rows, however they will be changed to 0
+housing['total_bedrooms'].fillna(value = 0, inplace = True)
+print(housing.isna().sum())
+
+#columns for linear regression
+cols_to_select = ['housing_median_age', 'total_rooms', 'total_bedrooms', 'population', 'households', 'median_income', 'median_house_value']
+
+#creating a copy of the original dataframe with selected columns
+housing_value = housing[cols_to_select].copy()
+
+#median_income is recorded in tens of thousands, so this brings the amount into the actual value
+housing_value['median_income'] = housing_value['median_income'].multiply(10000)
+
+print(housing_value['median_income'])
+
+#general overview
+sns.pairplot(housing_value)
+plt.show()
+
+#the distribution plot shows an outliar around the 500,000 mark, my intial assumption is that this is a rather affluent area of california
+sns.distplot(housing_value['median_house_value'])
+plt.show()
+
+#maybe cut this out
+sns.heatmap(housing_value.corr(), annot = True, linewidths = .5)
+plt.show()
+
+X = housing_value[['housing_median_age', 'total_rooms', 'total_bedrooms', 'population', 'households', 'median_income']]
+Y = housing_value['median_house_value']
+
+X_train, X_test, Y_train, y_test = train_test_split(X, Y, test_size=0.5, random_state=101)
+
+lr = LinearRegression()
+lr.fit(X_train, Y_train)
+
+print(lr.intercept_)
+
+coeff_housing_value = pd.DataFrame(lr.coef_, X.columns, columns =['Coefficient'])
+
+print(coeff_housing_value)
+#interpret these sum them up
+
+predictions = lr.predict(X_test)
+plt.scatter(y_test, predictions)
+plt.show()
+
+sns.distplot(y_test-predictions, bins=50)
+plt.show()
+
+print('MAE:', metrics.mean_absolute_error(y_test, predictions))
+print('MSE:', metrics.mean_squared_error(y_test, predictions))
+print('RMSE:', np.sqrt(metrics.mean_squared_error(y_test, predictions)))
