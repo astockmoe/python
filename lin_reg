@@ -56,7 +56,6 @@ print(lr.intercept_)
 coeff_housing_value = pd.DataFrame(lr.coef_, X.columns, columns =['Coefficient'])
 
 print(coeff_housing_value)
-#interpret these sum them up
 
 predictions = lr.predict(X_test)
 plt.scatter(y_test, predictions)
