@@ -1,3 +1,3 @@
 # python
 
-Basic linear regression of California housing data
+Linear regression of California housing data
